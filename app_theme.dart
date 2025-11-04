@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color darkGreen = Color(0xFF405436); // background utama
-  static const Color gold = Color(0xFFEDC949);      // warna logo Quizy
-  static const Color lime = Color(0xFFA9BE70);      // warna tombol Next/Submit
-  static const Color correct = Color(0xFF34C759);   // jawaban benar
-  static const Color wrong = Color(0xFFFF383C);     // jawaban salah
+  static const Color darkGreen = Color(0xFF405436); // hijau tua (utama)
+  static const Color gold = Color(0xFFEDC949);      // gold-kuning
+  static const Color lime = Color(0xFFA9BE70);      // lime
+  static const Color correct = Color(0xFF34C759);   // hijau terang
+  static const Color wrong = Color(0xFFFF383C);     // merah menyala
 
-  // card/background transparan (5% & 18% sesuai desain)
   static Color cardBG = Colors.white.withOpacity(0.05);
   static Color cardBorder = Colors.white.withOpacity(0.18);
 }
@@ -17,7 +16,6 @@ class AppTheme {
     fontFamily: "Rubik",
     scaffoldBackgroundColor: AppColors.darkGreen,
 
-    /// AppBar sesuai desain (background 405436 dan teks putih)
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.darkGreen,
       elevation: 0,
