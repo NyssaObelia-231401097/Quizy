@@ -24,7 +24,6 @@ Quizy adalah aplikasi kuis sederhana berbasis **Flutter** yang memungkinkan peng
 
 ## 📸 Screenshot / Video Aplikasi
 *(soon)*  
-Contoh:  
 
 ---
 
