@@ -23,7 +23,7 @@ Quizy adalah aplikasi kuis sederhana berbasis **Flutter** yang memungkinkan peng
 ---
 
 ## 📸 Screenshot / Video Aplikasi
-*(soon)*  
+[Video Prototype - Quizy](https://drive.google.com/file/d/1EQwrzVG6iO6WuHGJjkooakAVOrw62rKC/view?usp=sharing)
 
 ---
 
