@@ -1,3 +1,4 @@
+// lib/widgets/option_tile.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
@@ -6,40 +7,39 @@ import '../theme.dart';
 class OptionTile extends StatelessWidget {
   final String text;
   final int index;
+  final Size? size; // opsional
 
-  const OptionTile({required this.text, required this.index});
+  const OptionTile({required this.text, required this.index, this.size, super.key});
 
   @override
   Widget build(BuildContext context) {
+    final s = size ?? MediaQuery.of(context).size;
+
     return Consumer<QuizProvider>(
       builder: (context, quiz, _) {
-        bool isSelected = quiz.userAnswers[quiz.currentQuestion] == index;
+        final bool isSelected = quiz.userAnswers.isNotEmpty && quiz.userAnswers[quiz.currentQuestion] == index;
 
         return GestureDetector(
           onTap: () => quiz.selectAnswer(index),
           child: Container(
             width: double.infinity,
-            height: 62,
-            margin: const EdgeInsets.symmetric(vertical: 5),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: EdgeInsets.only(bottom: s.height * 0.015),
+            padding: EdgeInsets.symmetric(vertical: s.height * 0.018, horizontal: s.width * 0.04),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: isSelected ? lime.withOpacity(0.95) : Colors.white.withOpacity(0.07),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isSelected ? lime : Colors.white.withOpacity(0.2),
+                color: isSelected ? correctBorderColor() : Colors.white.withOpacity(0.22),
                 width: 2,
               ),
-              borderRadius: BorderRadius.circular(10),
             ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontFamily: 'Rubik',
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white,
+                fontSize: s.width * 0.048,
+                fontFamily: 'Rubik',
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ),
@@ -47,4 +47,7 @@ class OptionTile extends StatelessWidget {
       },
     );
   }
+
+  // helper: warna border saat terpilih (bisa diubah)
+  Color correctBorderColor() => darkGreen;
 }
