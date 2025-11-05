@@ -1,3 +1,4 @@
+// lib/screens/quiz_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
@@ -10,6 +11,8 @@ import 'submit_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   static const routeName = "/quiz";
+
+  const QuizScreen({super.key});
 
   @override
   _QuizScreenState createState() => _QuizScreenState();
@@ -25,15 +28,14 @@ class _QuizScreenState extends State<QuizScreen> {
     startTimer();
   }
 
-  int get currentTimer =>
-      quizProvider.questionTimers[quizProvider.currentQuestion];
+  int get currentTimer => quizProvider.questionTimers[quizProvider.currentQuestion];
 
+  // sederhana loop timer tanpa isolate; memakai mounted check
   void startTimer() {
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
-
-      int q = quizProvider.currentQuestion;
-
+      final q = quizProvider.currentQuestion;
+      if (quizProvider.questionTimers.isEmpty) return;
       if (quizProvider.questionTimers[q] > 0) {
         quizProvider.questionTimers[q]--;
         setState(() {});
@@ -43,214 +45,148 @@ class _QuizScreenState extends State<QuizScreen> {
           quizProvider.nextQuestion();
           startTimer();
         } else {
+          // submit/selesai
           Navigator.pushReplacementNamed(context, SubmitScreen.routeName);
         }
       }
     });
   }
 
+  // safe back handling: jika sedang soal >0 maka previous, else dialog
   Future<bool> _onWillPop() async {
-    if (quizProvider.currentQuestion == 0) {
-      return await showDialog(
+    final quiz = Provider.of<QuizProvider>(context, listen: false);
+    if (quiz.currentQuestion == 0) {
+      final res = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: darkGreen,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Color(0xFFE5D582), width: 2),
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFFE5D582), width: 2),
           ),
-          contentPadding: EdgeInsets.zero,
-          content: SizedBox(
-            width: 300,
-            height: 220,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    "Are you sure you want to exit?",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Rubik',
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Text(
-                  "Your progress will be lost",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Rubik',
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Container(
-                        width: 99,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Color(0xFF34C759),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "Cancel",
-                          style: TextStyle(
-                              fontFamily: 'Rubik',
-                              fontSize: 20,
-                              color: Colors.white),
-                        ),
-                      ),
-                    ),
-
-                    TextButton(
-                      onPressed: () {
-                        quizProvider.resetQuiz();
-                        Navigator.pop(context, true);
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 99,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFFF383C),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "Yes",
-                          style: TextStyle(
-                              fontFamily: 'Rubik',
-                              fontSize: 20,
-                              color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
+          title: const Text('Exit Quiz?', style: TextStyle(color: Colors.white)),
+          content: const Text('Your progress will be lost', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.white))),
+            TextButton(onPressed: () {
+              quiz.resetQuiz();
+              Navigator.pop(context, true);
+              Navigator.pop(context);
+            }, child: const Text('Yes', style: TextStyle(color: Colors.red))),
+          ],
         ),
       );
+      return res ?? false;
     } else {
-      quizProvider.previousQuestion();
+      quiz.previousQuestion();
       setState(() {});
       return false;
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
+    // ambil ukuran layar
+    final size = MediaQuery.of(context).size;
+    final quiz = Provider.of<QuizProvider>(context);
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: darkGreen,
         body: SafeArea(
-          child: Consumer<QuizProvider>(
-            builder: (_, quiz, __) => Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 53,
-                        height: 35,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(5)),
-                        child: Text(
-                          "${quiz.currentQuestion + 1}/${quiz.questionsList.length}",
-                          style: TextStyle(
-                              color: darkGreen,
-                              fontFamily: 'Rubik',
-                              fontWeight: FontWeight.w600),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: size.width * 0.04, vertical: size.height * 0.02),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // top row: nomor soal + timer
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: size.height * 0.009, horizontal: size.width * 0.03),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                      child: Text(
+                        "${quiz.currentQuestion + 1}/${quiz.questionsList.length}",
+                        style: TextStyle(
+                          fontFamily: 'Rubik',
+                          fontSize: size.width * 0.045,
+                          fontWeight: FontWeight.bold,
+                          color: darkGreen,
                         ),
                       ),
-                      QuizTimer(timer: currentTimer),
-                    ],
+                    ),
+                    QuizTimer(timer: currentTimer, size: size), // size opsional di QuizTimer
+                  ],
+                ),
+
+                SizedBox(height: size.height * 0.02),
+
+                // question card
+                QuizCard(questionText: quiz.questionsList[quiz.currentQuestion].text, size: size),
+
+                SizedBox(height: size.height * 0.02),
+
+                // instruction (pastikan tidak hilang)
+                Text(
+                  "Select the correct option",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: size.width * 0.052,
+                    fontFamily: 'Rubik',
+                    fontWeight: FontWeight.w500,
                   ),
+                ),
 
-                  SizedBox(height: 16),
+                SizedBox(height: size.height * 0.012),
 
-                  QuizCard(
-                      questionText:
-                      quiz.questionsList[quiz.currentQuestion].text),
-
-                  SizedBox(height: 16),
-
-                  Text(
-                    "Select the correct option",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontFamily: 'Rubik'),
-                  ),
-
-                  SizedBox(height: 8),
-
-                  Column(
-                    children: List.generate(
-                      quiz.questionsList[quiz.currentQuestion].options.length,
-                          (i) => OptionTile(
+                // options list (scrollable)
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: quiz.questionsList[quiz.currentQuestion].options.length,
+                    itemBuilder: (context, i) {
+                      return OptionTile(
                         text: quiz.questionsList[quiz.currentQuestion].options[i],
                         index: i,
-                      ),
-                    ),
+                        size: size, // opsional -> responsive
+                      );
+                    },
                   ),
+                ),
 
-                  Spacer(),
+                SizedBox(height: size.height * 0.01),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      QuizButton(
-                        text: "Back",
-                        onTap: _onWillPop,
-                        color: lime,
-                        textColor: Colors.white,
-                        outlined: true,
-                      ),
-
-                      quiz.currentQuestion ==
-                          quiz.questionsList.length - 1
-                          ? QuizButton(
-                        text: "Submit",
-                        onTap: () {
-                          Navigator.pushReplacementNamed(
-                              context, SubmitScreen.routeName);
-                        },
-                        color: lime,
-                      )
-                          : QuizButton(
-                        text: "Next",
-                        onTap: () {
-                          quizProvider.nextQuestion();
-                          setState(() {});
-                        },
-                        color: lime,
-                      ),
-                    ],
-                  )
-                ],
-              ),
+                // buttons row (gunakan QuizButton yang menerima size opsional)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    QuizButton(
+                      text: "Back",
+                      onTap: () {
+                        if (quiz.currentQuestion > 0) quiz.previousQuestion();
+                        setState(() {});
+                      },
+                      size: size,
+                      outlined: true,
+                    ),
+                    quiz.currentQuestion == quiz.questionsList.length - 1
+                        ? QuizButton(
+                      text: "Submit",
+                      onTap: () => Navigator.pushReplacementNamed(context, SubmitScreen.routeName),
+                      size: size,
+                    )
+                        : QuizButton(
+                      text: "Next",
+                      onTap: () {
+                        quiz.nextQuestion();
+                        setState(() {});
+                      },
+                      size: size,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
